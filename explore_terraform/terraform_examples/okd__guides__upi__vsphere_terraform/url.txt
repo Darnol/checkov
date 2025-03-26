@@ -1,0 +1,1 @@
+https://github.com/okd-project/okd/tree/master/Guides/UPI/vSphere_terraform

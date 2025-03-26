@@ -1,0 +1,1 @@
+https://github.com/nozaq/terraform-aws-secure-baseline/tree/main/modules/vpc-baseline

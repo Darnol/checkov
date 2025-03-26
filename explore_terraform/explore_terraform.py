@@ -11,5 +11,6 @@ graph_manager = TerraformGraphManager(
 )
 
 _ = graph_manager.build_graph_from_source_directory(
-    source_dir="./explore_terraform/terraform_examples/example0",
+    # source_dir="./explore_terraform/terraform_examples/example0",
+    source_dir="./explore_terraform/terraform_examples/okd__guides__upi__vsphere_terraform",
 )
