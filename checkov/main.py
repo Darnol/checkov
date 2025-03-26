@@ -18,7 +18,7 @@ import argcomplete
 import configargparse
 from urllib3.exceptions import MaxRetryError
 
-# import checkov.logging_init  # noqa  # should be imported before the others to ensure correct logging setup
+import checkov.logging_init  # noqa  # should be imported before the others to ensure correct logging setup
 from checkov.ansible.runner import Runner as ansible_runner
 from checkov.argo_workflows.runner import Runner as argo_workflows_runner
 from checkov.arm.runner import Runner as arm_runner
@@ -91,7 +91,7 @@ from checkov.json_doc.runner import Runner as json_runner
 from checkov.kubernetes.runner import Runner as k8_runner
 from checkov.kustomize.runner import Runner as kustomize_runner
 
-# from checkov.logging_init import log_stream as logs_stream
+from checkov.logging_init import log_stream as logs_stream
 from checkov.openapi.runner import Runner as openapi_runner
 from checkov.runner_filter import RunnerFilter
 from checkov.common.sast.report_types import serialize_reachability_report
