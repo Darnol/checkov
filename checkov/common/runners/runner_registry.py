@@ -17,15 +17,23 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, cast, TYPE_CHECKING, Type, Literal
 from checkov.common.bridgecrew.check_type import CheckType
 
-from checkov.common.bridgecrew.code_categories import CodeCategoryMapping, CodeCategoryType
+from checkov.common.bridgecrew.code_categories import (
+    CodeCategoryMapping,
+    CodeCategoryType,
+)
 from checkov.common.bridgecrew.platform_integration import bc_integration
-from checkov.common.bridgecrew.integration_features.features.policy_metadata_integration import \
-    integration as metadata_integration
-from checkov.common.bridgecrew.integration_features.features.repo_config_integration import \
-    integration as repo_config_integration
-from checkov.common.bridgecrew.integration_features.features.licensing_integration import \
-    integration as licensing_integration
-from checkov.common.bridgecrew.integration_features.integration_feature_registry import integration_feature_registry
+from checkov.common.bridgecrew.integration_features.features.policy_metadata_integration import (
+    integration as metadata_integration,
+)
+from checkov.common.bridgecrew.integration_features.features.repo_config_integration import (
+    integration as repo_config_integration,
+)
+from checkov.common.bridgecrew.integration_features.features.licensing_integration import (
+    integration as licensing_integration,
+)
+from checkov.common.bridgecrew.integration_features.integration_feature_registry import (
+    integration_feature_registry,
+)
 from checkov.common.bridgecrew.platform_errors import ModuleNotEnabledError
 from checkov.common.bridgecrew.severities import Severities
 from checkov.common.images.image_referencer import ImageReferencer
@@ -38,9 +46,16 @@ from checkov.common.output.report import Report, merge_reports
 from checkov.common.output.sarif import Sarif
 from checkov.common.output.spdx import SPDX
 from checkov.common.parallelizer.parallel_runner import parallel_runner
-from checkov.common.resource_code_logger_filter import add_resource_code_filter_to_logger
+from checkov.common.resource_code_logger_filter import (
+    add_resource_code_filter_to_logger,
+)
 from checkov.common.sast.consts import CDKLanguages
-from checkov.common.typing import _ExitCodeThresholds, _BaseRunner, _ScaExitCodeThresholds, LibraryGraph
+from checkov.common.typing import (
+    _ExitCodeThresholds,
+    _BaseRunner,
+    _ScaExitCodeThresholds,
+    LibraryGraph,
+)
 from checkov.common.util import data_structures_utils
 from checkov.common.util.banner import default_tool as tool_name
 from checkov.common.util.consts import S3_UPLOAD_DETAILS_MESSAGE
@@ -74,7 +89,7 @@ OUTPUT_CHOICES = [
     "sarif",
     "spdx",
 ]
-SUMMARY_POSITIONS = frozenset(['top', 'bottom'])
+SUMMARY_POSITIONS = frozenset(["top", "bottom"])
 OUTPUT_DELIMITER = "\n--- OUTPUT DELIMITER ---\n"
 
 
@@ -97,39 +112,54 @@ class RunnerRegistry:
         self.image_referencing_runners = self._get_image_referencing_runners()
         self.filter_runner_framework()
         self.tool = tool
-        self._check_type_to_report_map: dict[str, Report] = {}  # used for finding reports with the same check type
-        self.licensing_integration = licensing_integration  # can be maniuplated by unit tests
+        self._check_type_to_report_map: dict[
+            str, Report
+        ] = {}  # used for finding reports with the same check type
+        self.licensing_integration = (
+            licensing_integration  # can be maniuplated by unit tests
+        )
         self.secrets_omitter_class = secrets_omitter_class
-        self.check_type_to_graph: dict[str, list[tuple[LibraryGraph, Optional[str]]]] = {}
+        self.check_type_to_graph: dict[
+            str, list[tuple[LibraryGraph, Optional[str]]]
+        ] = {}
         self.check_type_to_resource_subgraph_map: dict[str, dict[str, str]] = {}
         for runner in runners:
             if isinstance(runner, image_runner):
                 runner.image_referencers = self.image_referencing_runners
 
     def run(
-            self,
-            root_folder: Optional[str] = None,
-            external_checks_dir: Optional[List[str]] = None,
-            files: Optional[List[str]] = None,
-            collect_skip_comments: bool = True,
-            repo_root_for_plan_enrichment: list[str | Path] | None = None,
+        self,
+        root_folder: Optional[str] = None,
+        external_checks_dir: Optional[List[str]] = None,
+        files: Optional[List[str]] = None,
+        collect_skip_comments: bool = True,
+        repo_root_for_plan_enrichment: list[str | Path] | None = None,
     ) -> list[Report]:
         if not self.runners:
-            logging.error('There are no runners to run. This can happen if you specify a file type and a framework that are not compatible '
-                          '(e.g., `--file xyz.yaml --framework terraform`), or if you specify a framework with missing dependencies (e.g., '
-                          'helm or kustomize, which require those tools to be on your system). Running with LOG_LEVEL=DEBUG may provide more information.')
+            logging.error(
+                "There are no runners to run. This can happen if you specify a file type and a framework that are not compatible "
+                "(e.g., `--file xyz.yaml --framework terraform`), or if you specify a framework with missing dependencies (e.g., "
+                "helm or kustomize, which require those tools to be on your system). Running with LOG_LEVEL=DEBUG may provide more information."
+            )
             return []
         elif len(self.runners) == 1:
             runner_check_type = self.runners[0].check_type
             if self.licensing_integration.is_runner_valid(runner_check_type):
                 reports: Iterable[Report | list[Report]] = [
-                    self.runners[0].run(root_folder, external_checks_dir=external_checks_dir, files=files,
-                                        runner_filter=self.runner_filter,
-                                        collect_skip_comments=collect_skip_comments)]
+                    self.runners[0].run(
+                        root_folder,
+                        external_checks_dir=external_checks_dir,
+                        files=files,
+                        runner_filter=self.runner_filter,
+                        collect_skip_comments=collect_skip_comments,
+                    )
+                ]
             else:
                 # This is the only runner, so raise a clear indication of failure
-                raise ModuleNotEnabledError(f'The framework "{runner_check_type}" is part of the "{self.licensing_integration.get_subscription_for_runner(runner_check_type).name}" module, which is not enabled in the platform',
-                                            unsupported_frameworks=[runner_check_type])
+                raise ModuleNotEnabledError(
+                    f'The framework "{runner_check_type}" is part of the "{self.licensing_integration.get_subscription_for_runner(runner_check_type).name}" module, which is not enabled in the platform',
+                    unsupported_frameworks=[runner_check_type],
+                )
         else:
             valid_runners = []
             invalid_runners = []
@@ -141,7 +171,15 @@ class RunnerRegistry:
             for runner in self.runners:
                 if self.licensing_integration.is_runner_valid(runner.check_type):
                     valid_runners.append(
-                        (runner, root_folder, external_checks_dir, files, self.runner_filter, collect_skip_comments, platform_integration_data)
+                        (
+                            runner,
+                            root_folder,
+                            external_checks_dir,
+                            files,
+                            self.runner_filter,
+                            collect_skip_comments,
+                            platform_integration_data,
+                        )
                     )
                 else:
                     invalid_runners.append(runner)
@@ -152,16 +190,28 @@ class RunnerRegistry:
             # if some frameworks are disabled and the user did not use --framework, then log at a lower level so that we have it for troubleshooting
             if not valid_runners:
                 check_types = [runner.check_type for runner in self.runners]
-                runners_categories = os.linesep.join([f'{runner.check_type}: {self.licensing_integration.get_subscription_for_runner(runner.check_type).name}' for runner in invalid_runners])
-                error_message = f'All the frameworks are disabled because they are not enabled in the platform. ' \
-                                f'You must subscribe to one or more of the categories below to get results for these frameworks.{os.linesep}{runners_categories}'
-                raise ModuleNotEnabledError(error_message, unsupported_frameworks=check_types)
+                runners_categories = os.linesep.join(
+                    [
+                        f"{runner.check_type}: {self.licensing_integration.get_subscription_for_runner(runner.check_type).name}"
+                        for runner in invalid_runners
+                    ]
+                )
+                error_message = (
+                    f"All the frameworks are disabled because they are not enabled in the platform. "
+                    f"You must subscribe to one or more of the categories below to get results for these frameworks.{os.linesep}{runners_categories}"
+                )
+                raise ModuleNotEnabledError(
+                    error_message, unsupported_frameworks=check_types
+                )
             elif invalid_runners:
                 for runner in invalid_runners:
                     level = logging.INFO
                     if runner.check_type in self.runner_filter.framework_flag_values:
                         level = logging.WARNING
-                    logging.log(level, f'The framework "{runner.check_type}" is part of the "{self.licensing_integration.get_subscription_for_runner(runner.check_type).name}" module, which is not enabled in the platform')
+                    logging.log(
+                        level,
+                        f'The framework "{runner.check_type}" is part of the "{self.licensing_integration.get_subscription_for_runner(runner.check_type).name}" module, which is not enabled in the platform',
+                    )
 
             valid_runners = self._merge_runners(valid_runners)
 
@@ -176,20 +226,32 @@ class RunnerRegistry:
             full_check_type_to_resource_subgraph_map = {}
             for result in parallel_runner_results:
                 if result is not None:
-                    report, check_type, graphs, resource_subgraph_map, subprocess_log_stream = result
+                    (
+                        report,
+                        check_type,
+                        graphs,
+                        resource_subgraph_map,
+                        subprocess_log_stream,
+                    ) = result
                     reports.append(report)
                     if subprocess_log_stream is not None:
                         # only sub processes need to add their logs streams,
                         # the logs of all others methods already exists in the main stream
                         if parallel_runner.running_as_process():
-                            logger_streams.add_stream(f'{check_type or time.time()}', subprocess_log_stream)
+                            logger_streams.add_stream(
+                                f"{check_type or time.time()}", subprocess_log_stream
+                            )
                     if check_type is not None:
                         if graphs is not None:
                             full_check_type_to_graph[check_type] = graphs
                         if resource_subgraph_map is not None:
-                            full_check_type_to_resource_subgraph_map[check_type] = resource_subgraph_map
+                            full_check_type_to_resource_subgraph_map[check_type] = (
+                                resource_subgraph_map
+                            )
             self.check_type_to_graph = full_check_type_to_graph
-            self.check_type_to_resource_subgraph_map = full_check_type_to_resource_subgraph_map
+            self.check_type_to_resource_subgraph_map = (
+                full_check_type_to_resource_subgraph_map
+            )
 
         merged_reports = self._merge_reports(reports)
         if bc_integration.bc_api_key:
@@ -203,11 +265,17 @@ class RunnerRegistry:
             self._handle_report(scan_report, repo_root_for_plan_enrichment)
 
         if not self.check_type_to_graph:
-            self.check_type_to_graph = {runner.check_type: self.extract_graphs_from_runner(runner) for runner
-                                        in self.runners if runner.graph_manager}
+            self.check_type_to_graph = {
+                runner.check_type: self.extract_graphs_from_runner(runner)
+                for runner in self.runners
+                if runner.graph_manager
+            }
         if not self.check_type_to_resource_subgraph_map:
-            self.check_type_to_resource_subgraph_map = {runner.check_type: runner.resource_subgraph_map for runner in
-                                                        self.runners if runner.resource_subgraph_map is not None}
+            self.check_type_to_resource_subgraph_map = {
+                runner.check_type: runner.resource_subgraph_map
+                for runner in self.runners
+                if runner.resource_subgraph_map is not None
+            }
         return self.scan_reports
 
     def _merge_runners(self, runners: Any) -> list[_BaseRunner]:
@@ -245,12 +313,17 @@ class RunnerRegistry:
             sub_reports: list[Report] = force_list(report)
             for sub_report in sub_reports:
                 if sub_report.check_type in self._check_type_to_report_map:
-                    merge_reports(self._check_type_to_report_map[sub_report.check_type], sub_report)
+                    merge_reports(
+                        self._check_type_to_report_map[sub_report.check_type],
+                        sub_report,
+                    )
                 else:
                     self._check_type_to_report_map[sub_report.check_type] = sub_report
                     merged_reports.append(sub_report)
 
-                if self.should_add_sca_results_to_sca_supported_ir_report(sub_report, sub_reports):
+                if self.should_add_sca_results_to_sca_supported_ir_report(
+                    sub_report, sub_reports
+                ):
                     if self.sca_supported_ir_report:
                         merge_reports(self.sca_supported_ir_report, sub_report)
                     else:
@@ -259,17 +332,30 @@ class RunnerRegistry:
         return merged_reports
 
     @staticmethod
-    def should_add_sca_results_to_sca_supported_ir_report(sub_report: Report, sub_reports: list[Report]) -> bool:
-        if sub_report.check_type == 'sca_image' and bc_integration.customer_run_config_response:
+    def should_add_sca_results_to_sca_supported_ir_report(
+        sub_report: Report, sub_reports: list[Report]
+    ) -> bool:
+        if (
+            sub_report.check_type == "sca_image"
+            and bc_integration.customer_run_config_response
+        ):
             # The regular sca report
             if len(sub_reports) == 1:
                 return True
             # Dup report: first - regular iac, second - IR. we are checking that report fw is in the IR supported list.
-            if len(sub_reports) == 2 and sub_reports[0].check_type in bc_integration.customer_run_config_response.get('supportedIrFw', []):
+            if len(sub_reports) == 2 and sub_reports[
+                0
+            ].check_type in bc_integration.customer_run_config_response.get(
+                "supportedIrFw", []
+            ):
                 return True
         return False
 
-    def _handle_report(self, scan_report: Report, repo_root_for_plan_enrichment: list[str | Path] | None) -> None:
+    def _handle_report(
+        self,
+        scan_report: Report,
+        repo_root_for_plan_enrichment: list[str | Path] | None,
+    ) -> None:
         if metadata_integration.check_metadata:
             RunnerRegistry.enrich_report_with_guidelines(scan_report)
         if repo_root_for_plan_enrichment and not self.runner_filter.deep_analysis:
@@ -277,8 +363,12 @@ class RunnerRegistry:
                 repo_roots=repo_root_for_plan_enrichment,
                 download_external_modules=self.runner_filter.download_external_modules,
             )
-            scan_report = Report("terraform_plan").enrich_plan_report(scan_report, enriched_resources)
-            scan_report = Report("terraform_plan").handle_skipped_checks(scan_report, enriched_resources)
+            scan_report = Report("terraform_plan").enrich_plan_report(
+                scan_report, enriched_resources
+            )
+            scan_report = Report("terraform_plan").handle_skipped_checks(
+                scan_report, enriched_resources
+            )
         integration_feature_registry.run_post_runner(scan_report)
         self.scan_reports.append(scan_report)
 
@@ -287,18 +377,25 @@ class RunnerRegistry:
             file_path = Path(file_name)
             file_path.parent.mkdir(parents=True, exist_ok=True)
             file_path.write_text(data)
-            logging.info(f"\nWrote output in {data_format} format to the file '{file_name}')")
+            logging.info(
+                f"\nWrote output in {data_format} format to the file '{file_name}')"
+            )
         except EnvironmentError:
-            logging.error(f"\nAn error occurred while writing {data_format} results to file: {file_name}",
-                          exc_info=True)
+            logging.error(
+                f"\nAn error occurred while writing {data_format} results to file: {file_name}",
+                exc_info=True,
+            )
 
     @staticmethod
     def is_error_in_reports(reports: List[Report]) -> bool:
-        return any(scan_report.error_status != ErrorStatus.SUCCESS for scan_report in reports)
+        return any(
+            scan_report.error_status != ErrorStatus.SUCCESS for scan_report in reports
+        )
 
     @staticmethod
-    def get_fail_thresholds(config: argparse.Namespace, report_type: str) -> _ExitCodeThresholds | _ScaExitCodeThresholds:
-
+    def get_fail_thresholds(
+        config: argparse.Namespace, report_type: str
+    ) -> _ExitCodeThresholds | _ScaExitCodeThresholds:
         soft_fail = config.soft_fail
 
         soft_fail_on_checks = []
@@ -311,15 +408,20 @@ class RunnerRegistry:
         for val in convert_csv_string_arg_to_list(config.soft_fail_on):
             if val.upper() in Severities:
                 val = val.upper()
-                if not soft_fail_threshold or Severities[val].level > soft_fail_threshold.level:
+                if (
+                    not soft_fail_threshold
+                    or Severities[val].level > soft_fail_threshold.level
+                ):
                     soft_fail_threshold = Severities[val]
             elif val.capitalize() in SECRET_VALIDATION_STATUSES:
                 soft_fail_on_checks.append(val.capitalize())
             else:
                 soft_fail_on_checks.append(val)
 
-        logging.debug(f'Soft fail severity threshold: {soft_fail_threshold.level if soft_fail_threshold else None}')
-        logging.debug(f'Soft fail checks: {soft_fail_on_checks}')
+        logging.debug(
+            f"Soft fail severity threshold: {soft_fail_threshold.level if soft_fail_threshold else None}"
+        )
+        logging.debug(f"Soft fail checks: {soft_fail_on_checks}")
 
         hard_fail_on_checks = []
         hard_fail_threshold = None
@@ -327,66 +429,90 @@ class RunnerRegistry:
         for val in convert_csv_string_arg_to_list(config.hard_fail_on):
             if val.upper() in Severities:
                 val = val.upper()
-                if not hard_fail_threshold or Severities[val].level < hard_fail_threshold.level:
+                if (
+                    not hard_fail_threshold
+                    or Severities[val].level < hard_fail_threshold.level
+                ):
                     hard_fail_threshold = Severities[val]
             elif val.capitalize() in SECRET_VALIDATION_STATUSES:
                 hard_fail_on_checks.append(val.capitalize())
             else:
                 hard_fail_on_checks.append(val)
 
-        logging.debug(f'Hard fail severity threshold: {hard_fail_threshold.level if hard_fail_threshold else None}')
-        logging.debug(f'Hard fail checks: {hard_fail_on_checks}')
+        logging.debug(
+            f"Hard fail severity threshold: {hard_fail_threshold.level if hard_fail_threshold else None}"
+        )
+        logging.debug(f"Hard fail checks: {hard_fail_on_checks}")
 
         if not config.use_enforcement_rules:
-            logging.debug('Use enforcement rules is FALSE')
+            logging.debug("Use enforcement rules is FALSE")
 
         # if there is a severity in either the soft-fail-on list or hard-fail-on list, then we will ignore enforcement rules and skip this
         # it means that SCA will not be treated as having two different thresholds in that case
         # if the lists only contain check IDs, then we will merge them with the enforcement rule value
         elif not soft_fail and not soft_fail_threshold and not hard_fail_threshold:
-            if 'sca_' in report_type:
-                code_category_types = cast(List[CodeCategoryType], CodeCategoryMapping[report_type])
+            if "sca_" in report_type:
+                code_category_types = cast(
+                    List[CodeCategoryType], CodeCategoryMapping[report_type]
+                )
                 category_rules = {
-                    category: repo_config_integration.code_category_configs[category] for category in code_category_types
+                    category: repo_config_integration.code_category_configs[category]
+                    for category in code_category_types
                 }
-                return cast(_ScaExitCodeThresholds, {
-                    category: {
-                        'soft_fail': category_rules[category].is_global_soft_fail(),
-                        'soft_fail_checks': soft_fail_on_checks,
-                        'soft_fail_threshold': soft_fail_threshold,
-                        'hard_fail_checks': hard_fail_on_checks,
-                        'hard_fail_threshold': category_rules[category].hard_fail_threshold
-                    } for category in code_category_types
-                })
+                return cast(
+                    _ScaExitCodeThresholds,
+                    {
+                        category: {
+                            "soft_fail": category_rules[category].is_global_soft_fail(),
+                            "soft_fail_checks": soft_fail_on_checks,
+                            "soft_fail_threshold": soft_fail_threshold,
+                            "hard_fail_checks": hard_fail_on_checks,
+                            "hard_fail_threshold": category_rules[
+                                category
+                            ].hard_fail_threshold,
+                        }
+                        for category in code_category_types
+                    },
+                )
             else:
-                code_category_type = cast(CodeCategoryType, CodeCategoryMapping[report_type])  # not a list
-                enf_rule = repo_config_integration.code_category_configs[code_category_type]
+                code_category_type = cast(
+                    CodeCategoryType, CodeCategoryMapping[report_type]
+                )  # not a list
+                enf_rule = repo_config_integration.code_category_configs[
+                    code_category_type
+                ]
 
                 if enf_rule:
-                    logging.debug('Use enforcement rules is TRUE')
+                    logging.debug("Use enforcement rules is TRUE")
                     hard_fail_threshold = enf_rule.hard_fail_threshold
                     soft_fail = enf_rule.is_global_soft_fail()
-                    logging.debug(f'Using enforcement rule hard fail threshold for this report: {hard_fail_threshold.name}')
+                    logging.debug(
+                        f"Using enforcement rule hard fail threshold for this report: {hard_fail_threshold.name}"
+                    )
                 else:
-                    logging.debug(f'Use enforcement rules is TRUE, but did not find an enforcement rule for report type {report_type}, so falling back to CLI args')
+                    logging.debug(
+                        f"Use enforcement rules is TRUE, but did not find an enforcement rule for report type {report_type}, so falling back to CLI args"
+                    )
         else:
-            logging.debug('Soft fail was true or a severity was used in soft fail on / hard fail on; ignoring enforcement rules')
+            logging.debug(
+                "Soft fail was true or a severity was used in soft fail on / hard fail on; ignoring enforcement rules"
+            )
 
         return {
-            'soft_fail': soft_fail,
-            'soft_fail_checks': soft_fail_on_checks,
-            'soft_fail_threshold': soft_fail_threshold,
-            'hard_fail_checks': hard_fail_on_checks,
-            'hard_fail_threshold': hard_fail_threshold
+            "soft_fail": soft_fail,
+            "soft_fail_checks": soft_fail_on_checks,
+            "soft_fail_threshold": soft_fail_threshold,
+            "hard_fail_checks": hard_fail_on_checks,
+            "hard_fail_threshold": hard_fail_threshold,
         }
 
     def print_reports(
-            self,
-            scan_reports: List[Report],
-            config: argparse.Namespace,
-            url: Optional[str] = None,
-            created_baseline_path: Optional[str] = None,
-            baseline: Optional[Baseline] = None,
+        self,
+        scan_reports: List[Report],
+        config: argparse.Namespace,
+        url: Optional[str] = None,
+        created_baseline_path: Optional[str] = None,
+        baseline: Optional[Baseline] = None,
     ) -> Literal[0, 1]:
         output_formats: "dict[str, str]" = {}
 
@@ -395,7 +521,9 @@ class RunnerRegistry:
             for idx, output_format in enumerate(config.output):
                 output_formats[output_format] = output_paths[idx]
         else:
-            output_formats = {output_format: CONSOLE_OUTPUT for output_format in config.output}
+            output_formats = {
+                output_format: CONSOLE_OUTPUT for output_format in config.output
+            }
 
         exit_codes = []
         cli_reports = []
@@ -420,11 +548,20 @@ class RunnerRegistry:
         for report in scan_reports:
             if not report.is_empty():
                 if "json" in config.output:
-                    report_jsons.append(report.get_dict(is_quiet=config.quiet, url=url, s3_setup_failed=bc_integration.s3_setup_failed, support_path=bc_integration.support_repo_path))
+                    report_jsons.append(
+                        report.get_dict(
+                            is_quiet=config.quiet,
+                            url=url,
+                            s3_setup_failed=bc_integration.s3_setup_failed,
+                            support_path=bc_integration.support_repo_path,
+                        )
+                    )
                 if "junitxml" in config.output:
                     junit_reports.append(report)
                 if "github_failed_only" in config.output:
-                    github_reports.append(report.print_failed_github_md(use_bc_ids=config.output_bc_ids))
+                    github_reports.append(
+                        report.print_failed_github_md(use_bc_ids=config.output_bc_ids)
+                    )
                 if "sarif" in config.output:
                     sarif_reports.append(report)
                 if "cli" in config.output:
@@ -439,10 +576,12 @@ class RunnerRegistry:
                 if "csv" in config.output:
                     git_org = ""
                     git_repository = ""
-                    if 'repo_id' in config and config.repo_id is not None:
-                        git_org, git_repository = config.repo_id.split('/')
-                    csv_sbom_report.add_report(report=report, git_org=git_org, git_repository=git_repository)
-            logging.debug(f'Getting exit code for report {report.check_type}')
+                    if "repo_id" in config and config.repo_id is not None:
+                        git_org, git_repository = config.repo_id.split("/")
+                    csv_sbom_report.add_report(
+                        report=report, git_org=git_org, git_repository=git_repository
+                    )
+            logging.debug(f"Getting exit code for report {report.check_type}")
             exit_code_thresholds = self.get_fail_thresholds(config, report.check_type)
             exit_codes.append(report.get_exit_code(exit_code_thresholds))
 
@@ -460,9 +599,14 @@ class RunnerRegistry:
             if not config.quiet:
                 print(f"{self.banner}\n")
 
-            cli_output = ''
+            cli_output = ""
 
-            if (bc_integration.runtime_run_config_response and bc_integration.runtime_run_config_response.get('isRepoInRuntime', False)):
+            if (
+                bc_integration.runtime_run_config_response
+                and bc_integration.runtime_run_config_response.get(
+                    "isRepoInRuntime", False
+                )
+            ):
                 cli_output += f"The '{bc_integration.repo_id}' repository was discovered In a running environment\n\n"
 
             if len(cli_reports) > 0:
@@ -484,12 +628,14 @@ class RunnerRegistry:
                 output_format="cli",
                 output=cli_output,
                 url=url,
-                support_path=bc_integration.support_repo_path
+                support_path=bc_integration.support_repo_path,
             )
 
             # Remove colors from the cli output
-            ansi_escape = re.compile(r'(?:\x1B[@-_]|[\x80-\x9F])[0-9:;<=>?]*[ -/]*[@-~]')
-            data_outputs['cli'] = ansi_escape.sub('', cli_output)
+            ansi_escape = re.compile(
+                r"(?:\x1B[@-_]|[\x80-\x9F])[0-9:;<=>?]*[ -/]*[@-~]"
+            )
+            data_outputs["cli"] = ansi_escape.sub("", cli_output)
         if "sarif" in config.output:
             sarif = Sarif(reports=sarif_reports, tool=self.tool)
 
@@ -499,14 +645,16 @@ class RunnerRegistry:
 
             for report in sarif_reports:
                 if "cli" not in config.output and output_format == CONSOLE_OUTPUT:
-                    print(report.print_console(
-                        is_quiet=config.quiet,
-                        is_compact=config.compact,
-                        created_baseline_path=created_baseline_path,
-                        baseline=baseline,
-                        use_bc_ids=config.output_bc_ids,
-                        summary_position=config.summary_position
-                    ))
+                    print(
+                        report.print_console(
+                            is_quiet=config.quiet,
+                            is_compact=config.compact,
+                            created_baseline_path=created_baseline_path,
+                            baseline=baseline,
+                            use_bc_ids=config.output_bc_ids,
+                            summary_position=config.summary_position,
+                        )
+                    )
 
             if output_format == CONSOLE_OUTPUT:
                 if not config.output_file_path or "," in config.output_file_path:
@@ -521,7 +669,9 @@ class RunnerRegistry:
                     elif bc_integration.s3_setup_failed:
                         print(S3_UPLOAD_DETAILS_MESSAGE)
                     if bc_integration.support_repo_path:
-                        print(f"\nPath for uploaded logs (give this to support if raising an issue): {bc_integration.support_repo_path}")
+                        print(
+                            f"\nPath for uploaded logs (give this to support if raising an issue): {bc_integration.support_repo_path}"
+                        )
                 if CONSOLE_OUTPUT in output_formats.values():
                     print(OUTPUT_DELIMITER)
 
@@ -536,7 +686,9 @@ class RunnerRegistry:
             elif len(report_jsons) == 1:
                 report_json_output = report_jsons[0]
 
-            json_output = json.dumps(report_json_output, indent=4, cls=CustomJSONEncoder)
+            json_output = json.dumps(
+                report_json_output, indent=4, cls=CustomJSONEncoder
+            )
 
             self._print_to_console(
                 output_formats=output_formats,
@@ -550,7 +702,9 @@ class RunnerRegistry:
 
             if junit_reports:
                 test_suites = [
-                    report.get_test_suite(properties=properties, use_bc_ids=config.output_bc_ids)
+                    report.get_test_suite(
+                        properties=properties, use_bc_ids=config.output_bc_ids
+                    )
                     for report in junit_reports
                 ]
             else:
@@ -564,9 +718,12 @@ class RunnerRegistry:
                 output=junit_output,
             )
 
-            data_outputs['junitxml'] = junit_output
+            data_outputs["junitxml"] = junit_output
         if any(cyclonedx in config.output for cyclonedx in CYCLONEDX_OUTPUTS):
-            cyclonedx = CycloneDX(repo_id=metadata_integration.bc_integration.repo_id, reports=cyclonedx_reports)
+            cyclonedx = CycloneDX(
+                repo_id=metadata_integration.bc_integration.repo_id,
+                reports=cyclonedx_reports,
+            )
 
             for cyclonedx_format in CYCLONEDX_OUTPUTS:
                 if cyclonedx_format not in config.output:
@@ -579,7 +736,9 @@ class RunnerRegistry:
                     cyclonedx_output = cyclonedx.get_json_output()
                 else:
                     # this shouldn't happen
-                    logging.error(f"CycloneDX output format '{cyclonedx_format}' not supported")
+                    logging.error(
+                        f"CycloneDX output format '{cyclonedx_format}' not supported"
+                    )
                     continue
 
                 self._print_to_console(
@@ -600,7 +759,10 @@ class RunnerRegistry:
 
             data_outputs["gitlab_sast"] = json.dumps(gl_sast.sast_json)
         if "spdx" in config.output:
-            spdx = SPDX(repo_id=metadata_integration.bc_integration.repo_id, reports=spdx_reports)
+            spdx = SPDX(
+                repo_id=metadata_integration.bc_integration.repo_id,
+                reports=spdx_reports,
+            )
             spdx_output = spdx.get_tag_value_output()
 
             self._print_to_console(
@@ -612,21 +774,23 @@ class RunnerRegistry:
             data_outputs["spdx"] = spdx_output
         if "csv" in config.output:
             is_api_key = False
-            if 'bc_api_key' in config and config.bc_api_key is not None:
+            if "bc_api_key" in config and config.bc_api_key is not None:
                 is_api_key = True
-            csv_sbom_report.persist_report(is_api_key=is_api_key, output_path=config.output_file_path)
+            csv_sbom_report.persist_report(
+                is_api_key=is_api_key, output_path=config.output_file_path
+            )
 
         # Save output to file
         file_names = {
-            'cli': 'results_cli.txt',
-            'github_failed_only': 'results_github_failed_only.md',
-            'sarif': 'results_sarif.sarif',
-            'json': 'results_json.json',
-            'junitxml': 'results_junitxml.xml',
-            'cyclonedx': 'results_cyclonedx.xml',
-            'cyclonedx_json': 'results_cyclonedx.json',
-            'gitlab_sast': 'results_gitlab_sast.json',
-            'spdx': 'results_spdx.spdx',
+            "cli": "results_cli.txt",
+            "github_failed_only": "results_github_failed_only.md",
+            "sarif": "results_sarif.sarif",
+            "json": "results_json.json",
+            "junitxml": "results_junitxml.xml",
+            "cyclonedx": "results_cyclonedx.xml",
+            "cyclonedx_json": "results_cyclonedx.json",
+            "gitlab_sast": "results_gitlab_sast.json",
+            "spdx": "results_spdx.spdx",
         }
 
         if config.output_file_path:
@@ -641,20 +805,27 @@ class RunnerRegistry:
                 for output in config.output:
                     if output in file_names:
                         self.save_output_to_file(
-                            file_name=f'{config.output_file_path}/{file_names[output]}',
+                            file_name=f"{config.output_file_path}/{file_names[output]}",
                             data=data_outputs[output],
                             data_format=output,
                         )
         exit_code = 1 if 1 in exit_codes else 0
         return cast(Literal[0, 1], exit_code)
 
-    def _print_to_console(self, output_formats: dict[str, str], output_format: str, output: str, url: str | None = None, support_path: str | None = None) -> None:
+    def _print_to_console(
+        self,
+        output_formats: dict[str, str],
+        output_format: str,
+        output: str,
+        url: str | None = None,
+        support_path: str | None = None,
+    ) -> None:
         """Prints the output to console, if needed"""
         output_dest = output_formats[output_format]
         if output_dest == CONSOLE_OUTPUT:
             del output_formats[output_format]
 
-            if platform.system() == 'Windows':
+            if platform.system() == "Windows":
                 sys.stdout.buffer.write(output.encode("utf-8"))
             else:
                 print(output)
@@ -664,42 +835,55 @@ class RunnerRegistry:
                 print(S3_UPLOAD_DETAILS_MESSAGE)
 
             if support_path:
-                print(f"\nPath for uploaded logs (give this to support if raising an issue): {support_path}")
+                print(
+                    f"\nPath for uploaded logs (give this to support if raising an issue): {support_path}"
+                )
 
             if CONSOLE_OUTPUT in output_formats.values():
                 print(OUTPUT_DELIMITER)
 
-    def print_iac_bom_reports(self, output_path: str,
-                              scan_reports: list[Report],
-                              output_types: list[str],
-                              account_id: str) -> dict[str, str]:
-
-        output_files = {
-            'cyclonedx': 'results_cyclonedx.xml',
-            'csv': 'results_iac.csv'
-        }
+    def print_iac_bom_reports(
+        self,
+        output_path: str,
+        scan_reports: list[Report],
+        output_types: list[str],
+        account_id: str,
+    ) -> dict[str, str]:
+        output_files = {"cyclonedx": "results_cyclonedx.xml", "csv": "results_iac.csv"}
 
         # create cyclonedx report
-        if 'cyclonedx' in output_types:
-            cyclonedx_output_path = output_files['cyclonedx']
-            cyclonedx = CycloneDX(reports=scan_reports,
-                                  repo_id=metadata_integration.bc_integration.repo_id,
-                                  export_iac_only=True)
+        if "cyclonedx" in output_types:
+            cyclonedx_output_path = output_files["cyclonedx"]
+            cyclonedx = CycloneDX(
+                reports=scan_reports,
+                repo_id=metadata_integration.bc_integration.repo_id,
+                export_iac_only=True,
+            )
             cyclonedx_output = cyclonedx.get_xml_output()
-            self.save_output_to_file(file_name=os.path.join(output_path, cyclonedx_output_path),
-                                     data=cyclonedx_output,
-                                     data_format="cyclonedx")
+            self.save_output_to_file(
+                file_name=os.path.join(output_path, cyclonedx_output_path),
+                data=cyclonedx_output,
+                data_format="cyclonedx",
+            )
 
         # create csv report
-        if 'csv' in output_types:
+        if "csv" in output_types:
             csv_sbom_report = CSVSBOM()
             for report in scan_reports:
                 if not report.is_empty():
-                    git_org, git_repository = self.extract_git_info_from_account_id(account_id)
-                    csv_sbom_report.add_report(report=report, git_org=git_org, git_repository=git_repository)
-            csv_sbom_report.persist_report_iac(file_name=output_files['csv'], output_path=output_path)
+                    git_org, git_repository = self.extract_git_info_from_account_id(
+                        account_id
+                    )
+                    csv_sbom_report.add_report(
+                        report=report, git_org=git_org, git_repository=git_repository
+                    )
+            csv_sbom_report.persist_report_iac(
+                file_name=output_files["csv"], output_path=output_path
+            )
 
-        return {key: os.path.join(output_path, value) for key, value in output_files.items()}
+        return {
+            key: os.path.join(output_path, value) for key, value in output_files.items()
+        }
 
     def filter_runner_framework(self) -> None:
         if not self.runner_filter:
@@ -708,14 +892,24 @@ class RunnerRegistry:
             return
         if "all" in self.runner_filter.framework:
             return
-        self.runners = [runner for runner in self.runners if runner.check_type in self.runner_filter.framework]
+        self.runners = [
+            runner
+            for runner in self.runners
+            if runner.check_type in self.runner_filter.framework
+        ]
 
     def filter_runners_for_files(self, files: List[str]) -> None:
         if not files:
             return
 
-        self.runners = [runner for runner in self.runners if any(runner.should_scan_file(file) for file in files)]
-        logging.debug(f'Filtered runners based on file type(s). Result: {[r.check_type for r in self.runners]}')
+        self.runners = [
+            runner
+            for runner in self.runners
+            if any(runner.should_scan_file(file) for file in files)
+        ]
+        logging.debug(
+            f"Filtered runners based on file type(s). Result: {[r.check_type for r in self.runners]}"
+        )
 
     def remove_runner(self, runner: _BaseRunner) -> None:
         if runner in self.runners:
@@ -723,7 +917,11 @@ class RunnerRegistry:
 
     @staticmethod
     def enrich_report_with_guidelines(scan_report: Report) -> None:
-        for record in itertools.chain(scan_report.failed_checks, scan_report.passed_checks, scan_report.skipped_checks):
+        for record in itertools.chain(
+            scan_report.failed_checks,
+            scan_report.passed_checks,
+            scan_report.skipped_checks,
+        ):
             guideline = metadata_integration.get_guideline(record.check_id)
             if guideline:
                 record.set_guideline(guideline)
@@ -738,25 +936,37 @@ class RunnerRegistry:
         for repo_root in repo_roots:
             parsing_errors: dict[str, Exception] = {}
             repo_root = os.path.abspath(repo_root)
-            tf_definitions: dict[TFDefinitionKey, dict[str, list[dict[str, Any]]]] = TFParser().parse_directory(
-                directory=repo_root,  # assume plan file is in the repo-root
-                out_parsing_errors=parsing_errors,
-                download_external_modules=download_external_modules,
+            tf_definitions: dict[TFDefinitionKey, dict[str, list[dict[str, Any]]]] = (
+                TFParser().parse_directory(
+                    directory=repo_root,  # assume plan file is in the repo-root
+                    out_parsing_errors=parsing_errors,
+                    download_external_modules=download_external_modules,
+                )
             )
-            repo_definitions[repo_root] = {'tf_definitions': tf_definitions, 'parsing_errors': parsing_errors}
+            repo_definitions[repo_root] = {
+                "tf_definitions": tf_definitions,
+                "parsing_errors": parsing_errors,
+            }
 
         enriched_resources = {}
         for repo_root, parse_results in repo_definitions.items():
-            definitions = cast("dict[TFDefinitionKey, dict[str, list[dict[str, Any]]]]", parse_results['tf_definitions'])
+            definitions = cast(
+                "dict[TFDefinitionKey, dict[str, list[dict[str, Any]]]]",
+                parse_results["tf_definitions"],
+            )
             for full_file_path, definition in definitions.items():
-                definitions_context = parser_registry.enrich_definitions_context((full_file_path, definition))
+                definitions_context = parser_registry.enrich_definitions_context(
+                    (full_file_path, definition)
+                )
                 abs_scanned_file = full_file_path.file_path
                 scanned_file = os.path.relpath(abs_scanned_file, repo_root)
                 for block_type, block_value in definition.items():
                     if block_type in CHECK_BLOCK_TYPES:
                         for entity in block_value:
                             context_parser = parser_registry.context_parsers[block_type]
-                            definition_path = context_parser.get_entity_context_path(entity)
+                            definition_path = context_parser.get_entity_context_path(
+                                entity
+                            )
                             entity_id = ".".join(definition_path)
                             entity_context_path = [block_type] + definition_path
                             entity_context = data_structures_utils.get_inner_dict(
@@ -787,7 +997,7 @@ class RunnerRegistry:
     @staticmethod
     def strip_code_blocks_from_json(report_jsons: List[Dict[str, Any]]) -> None:
         for report in report_jsons:
-            results = report.get('results', {})
+            results = report.get("results", {})
             for result in results.values():
                 for result_dict in result:
                     if isinstance(result_dict, dict):
@@ -796,9 +1006,9 @@ class RunnerRegistry:
 
     @staticmethod
     def extract_git_info_from_account_id(account_id: str) -> tuple[str, str]:
-        if '/' in account_id:
-            account_id_list = account_id.split('/')
-            git_org = '/'.join(account_id_list[0:-1])
+        if "/" in account_id:
+            account_id_list = account_id.split("/")
+            git_org = "/".join(account_id_list[0:-1])
             git_repository = account_id_list[-1]
         else:
             git_org, git_repository = "", ""
@@ -806,11 +1016,13 @@ class RunnerRegistry:
         return git_org, git_repository
 
     @staticmethod
-    def extract_graphs_from_runner(runner: _BaseRunner) -> list[tuple[LibraryGraph, Optional[str]]]:
+    def extract_graphs_from_runner(
+        runner: _BaseRunner,
+    ) -> list[tuple[LibraryGraph, Optional[str]]]:
         # exist only for terraform
-        all_graphs = getattr(runner, 'all_graphs', None)
+        all_graphs = getattr(runner, "all_graphs", None)
         if all_graphs:
-            return all_graphs   # type:ignore[no-any-return]
+            return all_graphs  # type:ignore[no-any-return]
         elif runner.graph_manager:
             return [(runner.graph_manager.get_reader_endpoint(), None)]
         return []
@@ -824,14 +1036,22 @@ def _parallel_run(
     runner_filter: RunnerFilter | None = None,
     collect_skip_comments: bool = True,
     platform_integration_data: dict[str, Any] | None = None,
-) -> tuple[Report | list[Report], str | None, list[tuple[LibraryGraph, str | None]] | None, dict[str, str] | None, StringIO | None]:
+) -> tuple[
+    Report | list[Report],
+    str | None,
+    list[tuple[LibraryGraph, str | None]] | None,
+    dict[str, str] | None,
+    StringIO | None,
+]:
     # only sub processes need to erase their logs, to start clean
     if parallel_runner.running_as_process():
         erase_log_stream()
 
     if platform_integration_data:
         # only happens for 'ParallelizationType.SPAWN'
-        bc_integration.init_instance(platform_integration_data=platform_integration_data)
+        bc_integration.init_instance(
+            platform_integration_data=platform_integration_data
+        )
 
     report = runner.run(
         root_folder=root_folder,
@@ -846,5 +1066,11 @@ def _parallel_run(
         report = Report(check_type=runner.check_type)
 
     if runner.graph_manager:
-        return report, runner.check_type, RunnerRegistry.extract_graphs_from_runner(runner), runner.resource_subgraph_map, log_stream
+        return (
+            report,
+            runner.check_type,
+            RunnerRegistry.extract_graphs_from_runner(runner),
+            runner.resource_subgraph_map,
+            log_stream,
+        )
     return report, runner.check_type, None, None, log_stream
