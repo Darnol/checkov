@@ -117,7 +117,7 @@ signal.signal(signal.SIGINT, lambda x, y: sys.exit(""))
 outer_registry = None
 
 logger = logging.getLogger(__name__)
-# add_resource_code_filter_to_logger(logger)
+add_resource_code_filter_to_logger(logger)
 
 # sca package runner added during the run method
 DEFAULT_RUNNERS: "list[BaseRunner[Any, Any, Any]]" = [

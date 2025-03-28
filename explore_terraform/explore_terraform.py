@@ -1,36 +1,13 @@
 import logging
 import os
 
+os.environ["LOG_LEVEL"] = "INFO"
 
 from checkov.main import Checkov
 from checkov.terraform.graph_builder.local_graph import TerraformLocalGraph
 from checkov.terraform.graph_manager import TerraformGraphManager
 
-# Set up logger
-# os.environ["CHECKOV_ALLOW_CODE_LOGGING"] = "True"
-# logger = logging.getLogger()
-# logger.setLevel(logging.DEBUG)
-
-
-logging.basicConfig(level=logging.DEBUG)
-# logging.getLogger("checkov").setLevel(logging.DEBUG)
-
-
-# # Get the Checkov logger and override its config
-# checkov_logger = logging.getLogger("checkov")
-# checkov_logger.setLevel(logging.DEBUG)
-
-# # Remove existing handlers (if Checkov added any)
-# for handler in checkov_logger.handlers[:]:
-#     checkov_logger.removeHandler(handler)
-
-# # Add our own handler to see the output
-# handler = logging.StreamHandler(sys.stdout)
-# handler.setLevel(logging.DEBUG)
-# formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-# handler.setFormatter(formatter)
-# checkov_logger.addHandler(handler)
-
+# If needed get the logger from "checkov" and specify handlers and log levels
 
 # Get abspath for source_dir
 source_dir = os.path.abspath(
