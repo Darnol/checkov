@@ -112,14 +112,17 @@ class TerraformGraphManager(
                 local_graph.vertices[e.dest],
             )
 
-        print("--- RESOURCES ONLY ---")
+        print("--- RESOURCES AND DATA ONLY ---")
         for v in local_graph.vertices:
-            if v.block_type == "resource":
+            if v.block_type in ["resource", "data"]:
                 print("Vertex: ", v)
         for e in local_graph.edges:
             v_src = local_graph.vertices[e.origin]
             v_tgt = local_graph.vertices[e.dest]
-            if v_src.block_type == "resource" and v_tgt.block_type == "resource":
+            if v_src.block_type in ["resource", "data"] and v_tgt.block_type in [
+                "resource",
+                "data",
+            ]:
                 print(
                     "Edge: ",
                     v_src,

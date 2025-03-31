@@ -1,32 +1,38 @@
-import logging
 import os
 
 os.environ["LOG_LEVEL"] = "INFO"
+os.environ["CHECKOV_NO_OUTPUT"] = "1"  # Disable checks output
 
 from checkov.main import Checkov
 from checkov.terraform.graph_builder.local_graph import TerraformLocalGraph
 from checkov.terraform.graph_manager import TerraformGraphManager
 
-# If needed get the logger from "checkov" and specify handlers and log levels
+# available examples
+examples = [
+    "gcpkubernetes__quickstart__terraform",
+    "okd__guides__upi__vsphere_terraform",
+    "terraform-aws-secure-baseline__modules__vpc-baseline",
+]
+
+example = examples[0]
+print(example)
 
 # Get abspath for source_dir
-source_dir = os.path.abspath(
-    "./explore_terraform/terraform_examples/okd__guides__upi__vsphere_terraform"
-)
+source_dir = os.path.abspath(f"./explore_terraform/terraform_examples/{example}")
 
 ###
 # Checkov
 res = Checkov(
     argv=[
         "-d",
-        "./explore_terraform/terraform_examples/okd__guides__upi__vsphere_terraform",
+        f"./explore_terraform/terraform_examples/{example}",
         "--framework",
         "terraform",
     ]
 ).run()
 
 ###
-# TerraformGraphManager
+# TerraformGraphManager - Alternative to using the Checkov main class
 graph_manager = TerraformGraphManager(
     db_connector=None,
 )
