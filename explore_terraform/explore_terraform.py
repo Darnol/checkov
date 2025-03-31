@@ -10,11 +10,11 @@ from checkov.terraform.graph_manager import TerraformGraphManager
 # available examples
 examples = [
     "gcpkubernetes__quickstart__terraform",
-    "okd__guides__upi__vsphere_terraform",
     "terraform-aws-secure-baseline__modules__vpc-baseline",
+    "okd__guides__upi__vsphere_terraform",
 ]
 
-example = examples[0]
+example = examples[2]
 print(example)
 
 # Get abspath for source_dir
