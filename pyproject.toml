@@ -139,6 +139,7 @@ forbidden_modules = [
 # testpaths = ["tests/terraform/graph/variable_rendering/test_foreach_renderer.py"]
 testpaths = ["tests/terraform/"]
 # addopts = "-s" # -s show prints, 
+addopts = "--junitxml=test-results.xml"
 
 
 
