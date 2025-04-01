@@ -118,8 +118,14 @@ class TerraformGraphManager(
                 print("Vertex: ", v)
                 from pprint import pformat
 
-                formatted = pformat(v.attributes)
-                indented = "\n".join("\t" + line for line in formatted.splitlines())
+                v_attrs: dict = v.attributes.copy()
+                v_attrs: dict = {
+                    k: v for k, v in v_attrs.items() if not str(k).startswith("__")
+                }
+                v_attrs_formatted = pformat(v_attrs, indent=4)
+                indented = "\n".join(
+                    "\t" + line for line in v_attrs_formatted.splitlines()
+                )
                 print(indented)
         for e in local_graph.edges:
             v_src = local_graph.vertices[e.origin]

@@ -7,12 +7,27 @@ resource "aws_vpc" "vpc" {
     Name = "vpc"
   }
 }
+
+/* hardcoded locals
 locals {
   subnets = {
     subnet1 = "10.30.1.0/24"
     subnet2 = "10.30.2.0/24"
   }
 }
+*/
+
+// loop for locals, avoid using count
+locals {
+  subnet_count = 2
+  subnet_base  = "10.30"
+
+  subnets = {
+    for i in range(local.subnet_count) : 
+    "subnet${i + 1}" => "${local.subnet_base}.${i + 1}.0/24"
+  }
+}
+
 resource "aws_subnet" "subnet" {
   for_each   = local.subnets
   vpc_id     = aws_vpc.vpc.id
