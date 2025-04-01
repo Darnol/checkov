@@ -136,8 +136,9 @@ forbidden_modules = [
 [tool.pytest.ini_options]
 # Disable parallelization for tests
 # addopts = "-n 2 --dist loadfile"
-testpaths = ["tests/terraform/graph/variable_rendering/test_foreach_renderer.py"]
-addopts = "-s" # -s show prints, 
+# testpaths = ["tests/terraform/graph/variable_rendering/test_foreach_renderer.py"]
+testpaths = ["tests/terraform/"]
+# addopts = "-s" # -s show prints, 
 
 
 
