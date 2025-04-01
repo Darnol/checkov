@@ -116,6 +116,11 @@ class TerraformGraphManager(
         for v in local_graph.vertices:
             if v.block_type in ["resource", "data"]:
                 print("Vertex: ", v)
+                from pprint import pformat
+
+                formatted = pformat(v.attributes)
+                indented = "\n".join("\t" + line for line in formatted.splitlines())
+                print(indented)
         for e in local_graph.edges:
             v_src = local_graph.vertices[e.origin]
             v_tgt = local_graph.vertices[e.dest]
