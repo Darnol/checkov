@@ -140,6 +140,3 @@ forbidden_modules = [
 testpaths = ["tests/terraform/"]
 # addopts = "-s" # -s show prints, 
 addopts = "--junitxml=test-results.xml"
-
-
-

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import networkx as nx
+from pathlib import Path
 import json
 import logging
 import os
 from collections import defaultdict
 from functools import partial
-from pathlib import Path
 from typing import List, Optional, Union, Any, Dict, overload, TypedDict, cast
 
 import checkov.terraform.graph_builder.foreach.consts
@@ -1249,6 +1250,72 @@ class TerraformLocalGraph(LocalGraph[TerraformBlock]):
             for i, v in enumerate(self.vertices):
                 if v.name in vertex.config[CustomAttributes.VIRTUAL_RESOURCES]:
                     self.create_edge(i, origin_node_index, VIRTUAL_RESOURCE)
+
+    def to_dot(self, path: Path) -> None:
+        """Write the graph to a dot file.
+        Only block_types resource and data are considered
+
+        Parameters
+        ----------
+        path : Path
+            Path to the dot file.
+        """
+
+        g = nx.DiGraph()
+
+        # Vertices
+        for v in self.vertices:
+            if v.block_type in ["resource", "data"]:
+                v_attributes = {
+                    "block_type": v.block_type,
+                    "resource_type": v.attributes.get("resource_type", None),
+                }
+                g.add_node(v.name, **v_attributes)
+
+        for e in self.edges:
+            v_src = self.vertices[e.origin]
+            v_tgt = self.vertices[e.dest]
+            if v_src.block_type in [
+                "resource",
+                "data",
+            ] and v_tgt.block_type in [
+                "resource",
+                "data",
+            ]:
+                g.add_edge(v_src.name, v_tgt.name)
+
+        nx.drawing.nx_pydot.write_dot(g, path)
+
+    def print_graph(self) -> None:
+        """Print the graph to the console."""
+        print("--- RESOURCES AND DATA ONLY ---")
+        for v in self.vertices:
+            if v.block_type in ["resource", "data"]:
+                print("Vertex: ", v)
+                from pprint import pformat
+
+                v_attrs: dict = v.attributes.copy()
+                v_attrs: dict = {
+                    k: v for k, v in v_attrs.items() if not str(k).startswith("__")
+                }
+                v_attrs_formatted = pformat(v_attrs, indent=4)
+                indented = "\n".join(
+                    "\t" + line for line in v_attrs_formatted.splitlines()
+                )
+                print(indented)
+        for e in self.edges:
+            v_src = self.vertices[e.origin]
+            v_tgt = self.vertices[e.dest]
+            if v_src.block_type in ["resource", "data"] and v_tgt.block_type in [
+                "resource",
+                "data",
+            ]:
+                print(
+                    "Edge: ",
+                    v_src,
+                    " -> ",
+                    v_tgt,
+                )
 
 
 def to_list(data: Any) -> list[Any] | dict[str, Any]:

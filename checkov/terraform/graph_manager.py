@@ -101,45 +101,8 @@ class TerraformGraphManager(
         local_graph = local_graph_class(module)
         local_graph.build_graph(render_variables=render_variables)
 
-        print("--- FULL GRAPH ---")
-        for v in local_graph.vertices:
-            print("Vertex: ", v)
-        for e in local_graph.edges:
-            print(
-                "Edge: ",
-                local_graph.vertices[e.origin],
-                " -> ",
-                local_graph.vertices[e.dest],
-            )
-
-        print("--- RESOURCES AND DATA ONLY ---")
-        for v in local_graph.vertices:
-            if v.block_type in ["resource", "data"]:
-                print("Vertex: ", v)
-                from pprint import pformat
-
-                v_attrs: dict = v.attributes.copy()
-                v_attrs: dict = {
-                    k: v for k, v in v_attrs.items() if not str(k).startswith("__")
-                }
-                v_attrs_formatted = pformat(v_attrs, indent=4)
-                indented = "\n".join(
-                    "\t" + line for line in v_attrs_formatted.splitlines()
-                )
-                print(indented)
-        for e in local_graph.edges:
-            v_src = local_graph.vertices[e.origin]
-            v_tgt = local_graph.vertices[e.dest]
-            if v_src.block_type in ["resource", "data"] and v_tgt.block_type in [
-                "resource",
-                "data",
-            ]:
-                print(
-                    "Edge: ",
-                    v_src,
-                    " -> ",
-                    v_tgt,
-                )
+        # Print the graph
+        local_graph.print_graph()
 
         return local_graph, tf_definitions
 
