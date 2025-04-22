@@ -1,0 +1,9 @@
+strict digraph {
+"aws_vpc.vpc" [block_type=resource, resource_type="['aws_vpc']"];
+"aws_subnet.subnet" [block_type=resource, resource_type="['aws_subnet']"];
+"aws_instance.instance_a" [block_type=resource, resource_type="['aws_instance']"];
+"aws_instance.instance_b" [block_type=resource, resource_type="['aws_instance']"];
+"aws_subnet.subnet" -> "aws_vpc.vpc";
+"aws_instance.instance_a" -> "aws_subnet.subnet";
+"aws_instance.instance_b" -> "aws_subnet.subnet";
+}

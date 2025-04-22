@@ -1,0 +1,18 @@
+strict digraph {
+"aws_subnets.default" [block_type=data, resource_type=None];
+"aws_subnet.default" [block_type=data, resource_type=None];
+"aws_cloudwatch_log_group.default_vpc_flow_logs[0]" [block_type=resource, resource_type="['aws_cloudwatch_log_group']"];
+"aws_flow_log.default_vpc_flow_logs[0]" [block_type=resource, resource_type="['aws_flow_log']"];
+"aws_default_vpc.default" [block_type=resource, resource_type="['aws_default_vpc']"];
+"aws_default_subnet.default" [block_type=resource, resource_type="['aws_default_subnet']"];
+"aws_default_route_table.default" [block_type=resource, resource_type="['aws_default_route_table']"];
+"aws_default_network_acl.default" [block_type=resource, resource_type="['aws_default_network_acl']"];
+"aws_default_security_group.default" [block_type=resource, resource_type="['aws_default_security_group']"];
+"aws_subnet.default" -> "aws_subnets.default";
+"aws_flow_log.default_vpc_flow_logs[0]" -> "aws_cloudwatch_log_group.default_vpc_flow_logs[0]";
+"aws_flow_log.default_vpc_flow_logs[0]" -> "aws_default_vpc.default";
+"aws_default_subnet.default" -> "aws_subnet.default";
+"aws_default_route_table.default" -> "aws_default_vpc.default";
+"aws_default_network_acl.default" -> "aws_default_vpc.default";
+"aws_default_security_group.default" -> "aws_default_vpc.default";
+}

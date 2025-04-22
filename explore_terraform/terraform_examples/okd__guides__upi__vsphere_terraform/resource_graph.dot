@@ -1,0 +1,22 @@
+strict digraph {
+"vsphere_folder.folder" [block_type=resource, resource_type="['vsphere_folder']"];
+"vsphere_datastore.datastore" [block_type=data, resource_type=None];
+"vsphere_network.network" [block_type=data, resource_type=None];
+"vsphere_virtual_machine.template" [block_type=data, resource_type=None];
+"vsphere_virtual_machine.vm[0]" [block_type=resource, resource_type="['vsphere_virtual_machine']"];
+"vsphere_datacenter.dc" [block_type=data, resource_type=None];
+"vsphere_compute_cluster.compute_cluster" [block_type=data, resource_type=None];
+"vsphere_resource_pool.resource_pool" [block_type=resource, resource_type="['vsphere_resource_pool']"];
+"vsphere_virtual_machine.vm[1]" [block_type=resource, resource_type="['vsphere_virtual_machine']"];
+"vsphere_virtual_machine.vm[2]" [block_type=resource, resource_type="['vsphere_virtual_machine']"];
+"vsphere_virtual_machine.vm[0]" -> "vsphere_datastore.datastore";
+"vsphere_virtual_machine.vm[0]" -> "vsphere_virtual_machine.template";
+"vsphere_virtual_machine.vm[0]" -> "vsphere_network.network";
+"vsphere_resource_pool.resource_pool" -> "vsphere_compute_cluster.compute_cluster";
+"vsphere_virtual_machine.vm[1]" -> "vsphere_datastore.datastore";
+"vsphere_virtual_machine.vm[1]" -> "vsphere_virtual_machine.template";
+"vsphere_virtual_machine.vm[1]" -> "vsphere_network.network";
+"vsphere_virtual_machine.vm[2]" -> "vsphere_datastore.datastore";
+"vsphere_virtual_machine.vm[2]" -> "vsphere_virtual_machine.template";
+"vsphere_virtual_machine.vm[2]" -> "vsphere_network.network";
+}

@@ -1,0 +1,12 @@
+strict digraph {
+"google_compute_global_address.gke_ingress_ipv4" [block_type=resource, resource_type="['google_compute_global_address']"];
+"google_compute_managed_ssl_certificate.ingress-certs" [block_type=resource, resource_type="['google_compute_managed_ssl_certificate']"];
+"kubernetes_ingress_v1.example_ingress" [block_type=resource, resource_type="['kubernetes_ingress_v1']"];
+"kubernetes_service_v1.example" [block_type=resource, resource_type="['kubernetes_service_v1']"];
+"kubernetes_service_v1.example2" [block_type=resource, resource_type="['kubernetes_service_v1']"];
+"kubernetes_pod_v1.example" [block_type=resource, resource_type="['kubernetes_pod_v1']"];
+"kubernetes_pod_v1.example2" [block_type=resource, resource_type="['kubernetes_pod_v1']"];
+"google_client_config.default" [block_type=data, resource_type=None];
+"kubernetes_service_v1.example" -> "kubernetes_pod_v1.example";
+"kubernetes_service_v1.example2" -> "kubernetes_pod_v1.example2";
+}
