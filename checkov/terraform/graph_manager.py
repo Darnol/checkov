@@ -102,7 +102,8 @@ class TerraformGraphManager(
         local_graph.build_graph(render_variables=render_variables)
 
         # Print the graph
-        local_graph.print_graph()
+        if kwargs.get("print_graph", False):
+            local_graph.print_graph()
 
         return local_graph, tf_definitions
 
