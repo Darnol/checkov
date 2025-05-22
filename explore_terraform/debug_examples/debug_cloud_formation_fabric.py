@@ -1,4 +1,5 @@
 import logging
+import pprint
 
 logging.basicConfig(level=logging.INFO)
 
@@ -31,12 +32,10 @@ from checkov.terraform.tf_parser import TFParser
 tfparser = TFParser()
 
 tfparser_dir = (
-    path_to_sourcdir
-    / "blueprints"
-    / "cloud-operations"
-    / "dns-shared-vpc"
-    / "examples"
-    / "shared-vpc-example"
+    path_to_sourcdir / "blueprints" / "cloud-operations"
+    # / "dns-shared-vpc"
+    # / "examples"
+    # / "shared-vpc-example"
 )
 
 parsed_modules = tfparser.parse_hcl_module(
@@ -49,3 +48,22 @@ parsed_modules = tfparser.parse_hcl_module(
     vars_files=None,
     external_modules_content_cache=None,
 )
+
+# tuple of 2 (module, tf_definitions)
+len(parsed_modules)
+
+# Module
+type(parsed_modules[0])
+
+parsed_modules[0]
+len(parsed_modules[0].external_modules_source_map)
+pprint.pprint(parsed_modules[0].external_modules_source_map)
+pprint.pprint(dict(parsed_modules[0].external_modules_source_map.keys()))
+pprint.pprint(list(parsed_modules[0].external_modules_source_map.values()))
+
+# Dict with TFDefinitionKey -> dict[str, Any]
+type(parsed_modules[1])
+len(parsed_modules[1])
+some_tfkey = list(parsed_modules[1].keys())[0]
+type(some_tfkey)
+pprint.pprint(parsed_modules[1][some_tfkey])
