@@ -65,7 +65,9 @@ if TYPE_CHECKING:
 
 
 def _filter_ignored_paths(
-    root: str, paths: list[str], excluded_paths: list[str] | None
+    root: str,
+    paths: list[str],
+    excluded_paths: list[str] | None,
 ) -> None:
     filter_ignored_paths(root, paths, excluded_paths)
     for path in force_list(paths):
@@ -161,7 +163,8 @@ class TFParser:
         )
         load_tf_modules(directory)
         self._parse_directory(
-            dir_filter=lambda d: self._check_process_dir(d), vars_files=vars_files
+            dir_filter=lambda d: self._check_process_dir(d),
+            vars_files=vars_files,
         )
         self._update_resolved_modules()
         return self.out_definitions
@@ -228,7 +231,9 @@ class TFParser:
             filter_ignored_paths(directory, dir_contents, excluded_paths)
 
         tf_files_to_load = self.handle_variables(
-            dir_contents, vars_files, specified_vars
+            dir_contents,
+            vars_files,
+            specified_vars,
         )
         files_to_data = self._load_files(tf_files_to_load)
         for file, data in sorted(files_to_data, key=lambda x: x[0]):

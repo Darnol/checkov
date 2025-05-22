@@ -5,7 +5,9 @@ import os
 import hashlib
 from typing import Optional, List, TYPE_CHECKING, Set, Dict
 
-from checkov.common.resource_code_logger_filter import add_resource_code_filter_to_logger
+from checkov.common.resource_code_logger_filter import (
+    add_resource_code_filter_to_logger,
+)
 from checkov.common.util.consts import DEFAULT_EXTERNAL_MODULES_DIR
 from checkov.terraform.module_loading.content import ModuleContent
 from checkov.terraform.module_loading.module_params import ModuleParams
@@ -19,7 +21,9 @@ class ModuleLoaderRegistry:
     module_content_cache: Dict[str, Optional[ModuleContent]] = {}  # noqa: CCE003
 
     def __init__(
-        self, download_external_modules: bool = False, external_modules_folder_name: str = DEFAULT_EXTERNAL_MODULES_DIR
+        self,
+        download_external_modules: bool = False,
+        external_modules_folder_name: str = DEFAULT_EXTERNAL_MODULES_DIR,
     ) -> None:
         self.logger = logging.getLogger(__name__)
         add_resource_code_filter_to_logger(self.logger)
@@ -37,27 +41,33 @@ class ModuleLoaderRegistry:
         tf_managed: bool = False,
     ) -> ModuleContent | None:
         """
-Search all registered loaders for the first one which is able to load the module source type. For more
-information, see `loader.ModuleLoader.load`.
+        Search all registered loaders for the first one which is able to load the module source type. For more
+        information, see `loader.ModuleLoader.load`.
         """
         if source is None:
             return None
 
         if module_address is None:
-            module_address = f'{source}:{source_version}'
+            module_address = f"{source}:{source_version}"
         if module_address in self.module_content_cache:
-            logging.debug(f'Used the cache for module {module_address}')
+            logging.debug(f"Used the cache for module {module_address}")
             return self.module_content_cache[module_address]
         else:
-            logging.debug(f'Cache miss for {module_address}')
+            logging.debug(f"Cache miss for {module_address}")
 
-        if os.name == 'nt':
+        if os.name == "nt":
             # For windows, due to limitations in the allowed characters for path names, the hash of the source is used.
             # https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
             source_hash = hashlib.md5(source.encode())  # nosec
-            local_dir = os.path.join(self.root_dir, self.external_modules_folder_name, source_hash.hexdigest())
+            local_dir = os.path.join(
+                self.root_dir,
+                self.external_modules_folder_name,
+                source_hash.hexdigest(),
+            )
         else:
-            local_dir = os.path.join(self.root_dir, self.external_modules_folder_name, source)
+            local_dir = os.path.join(
+                self.root_dir, self.external_modules_folder_name, source
+            )
         inner_module = ""
         next_url = source
         last_exception = None
@@ -82,11 +92,17 @@ information, see `loader.ModuleLoader.load`.
                         inner_module=inner_module,
                         tf_managed=tf_managed,
                     )
-                    logging.info(f"Attempting loading {source} via {loader.__class__} loader")
+                    logging.info(
+                        f"Attempting loading {source} via {loader.__class__} loader"
+                    )
                     content = loader.load(module_params)
-                    logging.info(f"Loading result of {module_address}={content.loaded()} via {loader.__class__} loader")
+                    logging.info(
+                        f"Loading result of {module_address}={content.loaded()} via {loader.__class__} loader"
+                    )
                 except Exception as e:
-                    logging.warning(f'Module {module_address} failed to load via {loader.__class__} due to: {e}')
+                    logging.warning(
+                        f"Module {module_address} failed to load via {loader.__class__} due to: {e}"
+                    )
                     last_exception = e
                     continue
                 if content.next_url:
