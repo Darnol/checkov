@@ -80,6 +80,7 @@ class ModuleLoaderRegistry:
             logging.info(f"Iterating over {len(self.loaders)} loaders")
             for loader in self.loaders:
                 if not self.download_external_modules and loader.is_external:
+                    # From the standard loaders, only the LocalPathLoader is not external
                     continue
                 try:
                     module_params = ModuleParams(

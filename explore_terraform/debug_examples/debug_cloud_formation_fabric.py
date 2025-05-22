@@ -30,10 +30,17 @@ from checkov.terraform.tf_parser import TFParser
 
 tfparser = TFParser()
 
-tfparser_dir = path_to_sourcdir / "blueprints"
+tfparser_dir = (
+    path_to_sourcdir
+    / "blueprints"
+    / "cloud-operations"
+    / "dns-shared-vpc"
+    / "examples"
+    / "shared-vpc-example"
+)
 
 parsed_modules = tfparser.parse_hcl_module(
-    source_dir=str(path_to_sourcdir),
+    source_dir=str(tfparser_dir),
     source="",
     download_external_modules=False,
     external_modules_download_path=".external_modules",
