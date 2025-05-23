@@ -56,6 +56,7 @@ len(parsed_modules)
 type(parsed_modules[0])
 
 parsed_modules[0]
+parsed_modules[0].to_dict()
 len(parsed_modules[0].external_modules_source_map)
 pprint.pprint(parsed_modules[0].external_modules_source_map)
 pprint.pprint(dict(parsed_modules[0].external_modules_source_map.keys()))
