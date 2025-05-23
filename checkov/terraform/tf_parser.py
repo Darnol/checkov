@@ -161,7 +161,10 @@ class TFParser:
         default_ml_registry.module_content_cache = (
             external_modules_content_cache if external_modules_content_cache else {}
         )
-        load_tf_modules(directory)
+        # In my understanding, load_tf_modules is used only to download external modules.
+        # We dont want that to run at all if download_external_modules = False, otherwise whats the point ...
+        if download_external_modules:
+            load_tf_modules(directory)
         self._parse_directory(
             dir_filter=lambda d: self._check_process_dir(d),
             vars_files=vars_files,

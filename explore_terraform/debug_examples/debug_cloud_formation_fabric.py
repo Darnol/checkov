@@ -10,6 +10,7 @@ from checkov.terraform.graph_manager import TerraformGraphManager
 # os.environ["LOG_LEVEL"] = "DEBUG"
 
 repo_id = "cloud_foundation_fabric"
+repo_id = "136401408"
 path_to_sourcdir = Path(f"./explore_terraform/debug_examples/{repo_id}").resolve()
 
 if not path_to_sourcdir.is_dir():
@@ -32,7 +33,9 @@ from checkov.terraform.tf_parser import TFParser
 tfparser = TFParser()
 
 tfparser_dir = (
-    path_to_sourcdir / "blueprints" / "cloud-operations"
+    path_to_sourcdir
+    # / "blueprints"
+    # / "cloud-operations"
     # / "dns-shared-vpc"
     # / "examples"
     # / "shared-vpc-example"
